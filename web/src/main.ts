@@ -188,26 +188,26 @@ function renderBlastRadiusSvg(report: ShipReadinessReport): void {
   );
   const hop2 = report.graph.nodes.filter((n) => n.hopDistance === 2);
 
-  // Column 0 (x = 24, w = 212)
-  coords.set(focal.id, { x: 24, y: attNode ? 92 : 126, w: 212, h: 72 });
+  // Column 0 (x = 20, w = 200)
+  coords.set(focal.id, { x: 20, y: attNode ? 92 : 126, w: 200, h: 72 });
   if (attNode) {
-    coords.set(attNode.id, { x: 24, y: 212, w: 212, h: 66 });
+    coords.set(attNode.id, { x: 20, y: 212, w: 200, h: 66 });
   }
 
-  // Column 1 (x = 344, w = 224)
+  // Column 1 (x = 340, w = 198) -> leaves 120px gap on left and 148px gap on right
   hop1.forEach((node, idx) => {
     const totalH = hop1.length * 72 + (hop1.length - 1) * 34;
     const startY = Math.max(28, Math.round((330 - totalH) / 2));
-    coords.set(node.id, { x: 344, y: startY + idx * 106, w: 224, h: 72 });
+    coords.set(node.id, { x: 340, y: startY + idx * 106, w: 198, h: 72 });
   });
 
-  // Column 2 (x = 672, w = 226)
+  // Column 2 (x = 686, w = 216)
   hop2.forEach((node, idx) => {
     const gap = hop2.length >= 4 ? 14 : 22;
     const boxH = hop2.length >= 4 ? 64 : 70;
     const totalH = hop2.length * boxH + (hop2.length - 1) * gap;
     const startY = Math.max(16, Math.round((330 - totalH) / 2));
-    coords.set(node.id, { x: 672, y: startY + idx * (boxH + gap), w: 226, h: boxH });
+    coords.set(node.id, { x: 686, y: startY + idx * (boxH + gap), w: 216, h: boxH });
   });
 
   const edgePaths: string[] = [];
