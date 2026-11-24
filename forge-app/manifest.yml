@@ -1,0 +1,159 @@
+modules:
+  jira:issuePanel:
+    - key: shipgate-readiness-panel
+      resource: ui-panel
+      resolver:
+        function: panel-resolver
+      title: ShipGate Context & Readiness
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+
+  jira:adminPage:
+    - key: shipgate-demo-seeder
+      resource: ui-admin
+      resolver:
+        function: admin-resolver
+      title: ShipGate Demo Workspace Seeder
+
+  rovo:agent:
+    - key: shipgate-auditor-agent
+      name: ShipGate Release Auditor
+      description: Audits Jira software releases against Confluence ADRs, Teamwork Graph blast-radius dependencies, and historical JSM postmortems before code ships.
+      prompt: >
+        You are ShipGate Release Auditor, an assignable software release readiness teammate built on Atlassian Forge.
+        Whenever an engineer or release manager asks whether a Jira issue or release is safe to merge or deploy:
+        1. Invoke fetch-context-graph to traverse the multi-hop Teamwork Graph across Jira blockers, Compass components, Confluence ADRs, and historical JSM postmortems.
+        2. Invoke verify-adr-compliance if configuration overrides or SQL migration snippets are provided.
+        3. Report the quantitative Ship Confidence Score (0-100), explicitly cite every violated Confluence ADR constraint and unlinked 2-hop JSM incident guardrail, recommend component owners for review, and offer to invoke create-mitigation-subtasks or log-release-attestation.
+      followUpPrompt: >
+        Summarize any remaining blockers clearly and offer to create Jira mitigation subtasks or record a release attestation once all CRITICAL ADR drifts are resolved.
+      conversationStarters:
+        - Audit PAY-482 against Confluence ADRs and hidden JSM incidents
+        - Check blast-radius graph and missing guardrails for DATA-704
+        - Create mitigation subtasks for AUTH-319 idempotency drift
+        - Draft release readiness attestation for OBS-910
+      actions:
+        - fetch-context-graph
+        - verify-adr-compliance
+        - create-mitigation-subtasks
+        - log-release-attestation
+
+  action:
+    - key: fetch-context-graph
+      name: Fetch Blast-Radius Context Graph
+      function: action-context-graph
+      actionVerb: GET
+      description: Traverses Teamwork Graph relationships from a Jira release issue across Compass components, Confluence ADRs, upstream blockers, and historical JSM incidents.
+      inputs:
+        issueKey:
+          title: Jira Issue Key
+          type: string
+          required: true
+          description: Jira issue key to audit (for example PAY-482, AUTH-319, DATA-704, or OBS-910)
+        depth:
+          title: Graph Hop Depth
+          type: integer
+          required: false
+          description: Maximum graph traversal depth between 1 and 3 (defaults to 2)
+
+    - key: verify-adr-compliance
+      name: Verify Confluence ADR & Postmortem Rules
+      function: action-verify-adr
+      actionVerb: GET
+      description: Evaluates proposed configuration changes or SQL DDL migrations against governed Confluence Architecture Decision Records (ADRs) and recalculates the Ship Confidence Score.
+      inputs:
+        issueKey:
+          title: Jira Issue Key
+          type: string
+          required: true
+          description: Target Jira release or story key
+        configSpec:
+          title: Proposed Config or SQL Diff
+          type: string
+          required: false
+          description: Raw configuration key-values or SQL DDL snippet to validate against Confluence ADRs
+
+    - key: create-mitigation-subtasks
+      name: Create Missing Readiness Subtasks
+      function: action-create-subtasks
+      actionVerb: CREATE
+      description: Creates actionable Jira mitigation subtasks for unresolved Confluence ADR drifts and JSM postmortem guardrails, linking them to the release issue.
+      inputs:
+        issueKey:
+          title: Parent Jira Issue Key
+          type: string
+          required: true
+          description: Parent Jira issue key under which mitigation subtasks will be created
+        mitigationIds:
+          title: Mitigation Item IDs
+          type: string
+          required: false
+          description: Optional comma-separated mitigation IDs (creates all pending guardrails if omitted)
+
+    - key: log-release-attestation
+      name: Log Release Readiness Attestation
+      function: action-log-attestation
+      actionVerb: UPDATE
+      description: Records a signed release readiness attestation entity back into Forge Hosted Storage and Teamwork Graph lineage for compliance auditability.
+      inputs:
+        issueKey:
+          title: Jira Issue Key
+          type: string
+          required: true
+          description: Jira issue key being attested for deployment
+        approverNote:
+          title: Approver Attestation Note
+          type: string
+          required: true
+          description: Verification summary recorded with the release attestation
+
+  rovo:mcp:
+    - key: shipgate-mcp-server
+      name: ShipGate Atlassian Context MCP
+      tools:
+        - fetch-context-graph
+        - verify-adr-compliance
+        - create-mitigation-subtasks
+        - log-release-attestation
+
+  function:
+    - key: panel-resolver
+      handler: index.panelResolver
+    - key: admin-resolver
+      handler: index.adminResolver
+    - key: action-context-graph
+      handler: index.fetchContextGraphAction
+    - key: action-verify-adr
+      handler: index.verifyAdrComplianceAction
+    - key: action-create-subtasks
+      handler: index.createMitigationSubtasksAction
+    - key: action-log-attestation
+      handler: index.logReleaseAttestationAction
+
+resources:
+  - key: ui-panel
+    path: static/panel
+  - key: ui-admin
+    path: static/admin
+
+permissions:
+  scopes:
+    - storage:app
+    - read:jira-work
+    - write:jira-work
+    - read:jira-user
+    - read:confluence-content.all
+    - read:page:confluence
+    - write:page:confluence
+    - read:space:confluence
+    - read:graph:issue:jira
+    - read:graph:page:confluence
+    - read:graph:component:compass
+    - read:graph:deployment:external
+    - read:graph:pull-request:external
+    - read:graph:project:jira
+
+app:
+  id: ari:cloud:ecosystem::app/00000000-0000-4000-8000-736869706761
+  runtime:
+    name: nodejs22.x
+    architecture: arm64

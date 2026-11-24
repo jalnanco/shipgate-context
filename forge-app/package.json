@@ -1,0 +1,27 @@
+{
+  "name": "shipgate-context-forge",
+  "version": "1.0.0",
+  "description": "ShipGate Context — Organizational Context, ADR Drift & Blast-Radius Release Readiness Gate built natively on Atlassian Forge (Rovo Agent + Atlassian MCP + Teamwork Graph + Runs on Atlassian)",
+  "license": "MIT",
+  "author": "Jiho Jang <jihobada@gmail.com>",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "verify:manifest": "tsx scripts/verify-manifest.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "check": "npm run build && npm run verify:manifest && npm test"
+  },
+  "dependencies": {
+    "@forge/api": "^8.5.1",
+    "@forge/kvs": "^2.1.3",
+    "@forge/resolver": "^2.0.2"
+  },
+  "devDependencies": {
+    "@forge/manifest": "^13.9.1",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "yaml": "^2.7.0"
+  }
+}

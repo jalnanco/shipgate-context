@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "shipgate-atlassian-context": {
+      "url": "https://mcp.atlassian.com/v1/sse",
+      "description": "Atlassian Remote MCP Server exposing Forge rovo:mcp tools from shipgate-mcp-server (fetch-context-graph, verify-adr-compliance, create-mitigation-subtasks, log-release-attestation)",
+      "headers": {
+        "X-Atlassian-Forge-App": "shipgate-context-forge"
+      }
+    }
+  }
+}

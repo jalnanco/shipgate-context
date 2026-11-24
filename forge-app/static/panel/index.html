@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShipGate Context & Readiness — Jira Issue Panel</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --crit: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 14px;
+      line-height: 1.45;
+    }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
+    .badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+    .BLOCKED { background: rgba(239,68,68,0.18); color: #fca5a5; border: 1px solid var(--crit); }
+    .ACTION_REQUIRED { background: rgba(245,158,11,0.18); color: #fcd34d; border: 1px solid var(--warn); }
+    .SHIP_READY { background: rgba(34,197,94,0.18); color: #86efac; border: 1px solid var(--ok); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .score { font-size: 28px; font-weight: 800; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    button {
+      background: #2563eb; color: #fff; border: none; border-radius: 6px;
+      padding: 7px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    button.secondary { background: #334155; }
+    ul { padding-left: 18px; font-size: 13px; margin-top: 6px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <strong>ShipGate Context &amp; Blast-Radius Gate</strong>
+      <div class="muted" id="subtitle">Querying Teamwork Graph &amp; Confluence ADRs...</div>
+    </div>
+    <span class="badge ACTION_REQUIRED" id="statusBadge">LOADING</span>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <div>
+        <div class="muted">SHIP CONFIDENCE SCORE</div>
+        <div class="score" id="scoreVal">-- / 100</div>
+      </div>
+      <div class="muted" id="graphStats">0 nodes · 0 hops</div>
+    </div>
+    <div class="actions">
+      <button id="btnMitigate">Create Mitigation Subtasks</button>
+      <button class="secondary" id="btnAttest">Log Release Attestation</button>
+      <button class="secondary" id="btnSeed">Seed Demo Workspace (1-Click)</button>
+    </div>
+  </div>
+  <div class="card">
+    <strong>Detected ADR Drift &amp; Hidden Incident Guardrails</strong>
+    <ul id="findingsList"><li>Evaluating release context...</li></ul>
+  </div>
+  <script>
+    async function callResolver(fnName, payload) {
+      if (window.AP || window.__forge_bridge__) {
+        try {
+          const bridge = window.__forge_bridge__;
+          if (bridge && bridge.invoke) return await bridge.invoke(fnName, payload);
+        } catch (_) {}
+      }
+      return null;
+    }
+    function renderReport(rep) {
+      if (!rep) return;
+      document.getElementById('subtitle').textContent = rep.issueKey + ' · ' + rep.issueSummary;
+      const b = document.getElementById('statusBadge');
+      b.textContent = rep.status.replace('_', ' ');
+      b.className = 'badge ' + rep.status;
+      document.getElementById('scoreVal').textContent = rep.confidenceScore + ' / 100';
+      document.getElementById('graphStats').textContent =
+        rep.graph.stats.totalNodes + ' graph nodes · ' + rep.graph.stats.hiddenUnlinkedRisks + ' hidden 2-hop risks';
+      const ul = document.getElementById('findingsList');
+      ul.innerHTML = '';
+      (rep.mitigationItems || []).forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = (item.completed ? '[VERIFIED] ' : '[' + item.severity + '] ') + item.summary +
+          (item.createdSubtaskKey ? ' (' + item.createdSubtaskKey + ')' : '');
+        ul.appendChild(li);
+      });
+      if (!rep.mitigationItems || rep.mitigationItems.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'All governed Confluence ADRs and JSM postmortem guardrails passed.';
+        ul.appendChild(li);
+      }
+    }
+    document.getElementById('btnMitigate').addEventListener('click', async () => {
+      const res = await callResolver('createMitigationSubtasks', {});
+      if (res && res.updatedReport) renderReport(res.updatedReport);
+    });
+    document.getElementById('btnAttest').addEventListener('click', async () => {
+      const rep = await callResolver('logReleaseAttestation', { approverNote: 'Approved in Jira Issue Panel' });
+      if (rep) renderReport(rep);
+    });
+    document.getElementById('btnSeed').addEventListener('click', async () => {
+      await callResolver('seedDemoWorkspace', {});
+      const rep = await callResolver('getIssueReadiness', {});
+      if (rep) renderReport(rep);
+    });
+    callResolver('getIssueReadiness', {}).then((rep) => { if (rep) renderReport(rep); });
+  </script>
+</body>
+</html>

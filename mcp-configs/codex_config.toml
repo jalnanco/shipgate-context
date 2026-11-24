@@ -1,0 +1,3 @@
+[mcp_servers.shipgate_atlassian_context]
+url = "https://mcp.atlassian.com/v1/sse"
+env_http_headers = { "X-Atlassian-Forge-App" = "shipgate-context-forge" }

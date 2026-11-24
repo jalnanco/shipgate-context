@@ -1,0 +1,25 @@
+# Internal contest artifacts & local media (root-anchored so forge-app/src & web/src are tracked!)
+/SCOUT.md
+/DRAFT.md
+/SUBMIT.md
+/PLAN.md
+/narration.txt
+/edl.json
+/src/
+/out/
+/design/
+/shots/
+/tts/
+/build/
+/tmp*/
+*.mp4
+*.mp3
+*.wav
+*.zip
+.DS_Store
+
+# Node / TypeScript build artifacts
+node_modules/
+forge-app/dist/
+.env
+.env.*

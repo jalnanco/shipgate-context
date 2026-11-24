@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShipGate Context — Build with Context. Ship with Confidence. (Atlassian Forge + Rovo + MCP + Teamwork Graph)</title>
+  <script type="module" crossorigin src="./assets/index-D9q65xlX.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-a0zEx4Cp.css">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Global Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <rect width="32" height="32" rx="8" fill="#2563EB" />
+            <path d="M9 16.5L13.5 21L23 11.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="23" cy="21" r="3" fill="#38BDF8" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title-row">
+            <h1>ShipGate Context</h1>
+            <span class="pill pill-forge">Runs on Atlassian · Forge Hosted KVS</span>
+            <span class="pill pill-mcp">rovo:mcp + rovo:agent + TWG</span>
+          </div>
+          <p class="brand-sub">Organizational ADR Drift, Hidden 2-Hop Incident &amp; Blast-Radius Gate for Jira, Rovo &amp; Coding Agents</p>
+        </div>
+      </div>
+
+      <div class="topbar-controls">
+        <div class="issue-picker-group">
+          <label for="issueSelect">Release Ticket</label>
+          <select id="issueSelect" aria-label="Select Jira Release Ticket"></select>
+        </div>
+        <button id="btnSeedWorkspace" class="btn btn-seed" title="Populates 4 Jira release issues, 4 Confluence ADRs, and 3 JSM postmortems">
+          ⚡ Seed Realistic Demo Workspace (1-Click)
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabbar" role="tablist">
+      <button class="tab-btn active" data-tab="panel" role="tab">1. Jira Issue Panel &amp; Teamwork Graph</button>
+      <button class="tab-btn" data-tab="rovo" role="tab">2. Assignable Rovo Release Auditor</button>
+      <button class="tab-btn" data-tab="mcp" role="tab">3. Atlassian MCP Live Console &amp; SKILL.md</button>
+      <button class="tab-btn" data-tab="arch" role="tab">4. Forge Manifest &amp; Judge 1-Click Setup</button>
+      <div class="seed-toast" id="seedStatusBanner">Workspace Seeded · 4 Issues · 4 ADRs · 3 SEV-1/2 Postmortems</div>
+    </nav>
+
+    <!-- TAB 1: Jira Issue Panel & Teamwork Graph -->
+    <main id="tab-panel" class="tab-view active">
+      <div class="panel-grid">
+        <!-- Left Column: Jira Issue Context + Live Config/SQL Diff Editor -->
+        <section class="card issue-column">
+          <div class="card-header">
+            <div>
+              <span class="eyebrow" id="jiraMetaEyebrow">JIRA SOFTWARE RELEASE · HIGHEST PRIORITY</span>
+              <h2 id="jiraIssueHeading">PAY-482: Increase Checkout PSP Retry Timeout to 15s</h2>
+            </div>
+            <span class="owner-chip" id="reviewerChip">Reviewer: @mina.park</span>
+          </div>
+
+          <div class="meta-strip" id="jiraMetaStrip"></div>
+
+          <div class="editor-block">
+            <div class="editor-header">
+              <label for="specEditor">Proposed Release Config / SQL Migration Diff (Live Editable)</label>
+              <div class="editor-actions">
+                <button id="btnAutoFixSpec" class="btn btn-xs btn-outline">✨ Apply ADR-Compliant Fix</button>
+                <button id="btnVerifySpec" class="btn btn-xs btn-primary">Re-Verify ADR Rules</button>
+              </div>
+            </div>
+            <textarea id="specEditor" rows="5" spellcheck="false"></textarea>
+          </div>
+
+          <div class="violations-section">
+            <div class="section-title-row">
+              <h3>Governed Confluence ADR &amp; JSM Postmortem Guardrails</h3>
+              <span class="count-pill" id="guardrailCountPill">0 items</span>
+            </div>
+            <div id="guardrailsList" class="guardrails-list"></div>
+          </div>
+        </section>
+
+        <!-- Right Column: Ship Confidence Scorecard + Interactive Multi-Hop Teamwork Graph -->
+        <section class="right-column">
+          <div class="card scorecard-box">
+            <div class="score-left">
+              <div class="gauge-wrap">
+                <svg width="108" height="108" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" stroke="#1E293B" stroke-width="11" fill="none" />
+                  <circle id="scoreArc" cx="60" cy="60" r="50" stroke="#EF4444" stroke-width="11" fill="none"
+                    stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="140"
+                    transform="rotate(-90 60 60)" />
+                </svg>
+                <div class="gauge-center">
+                  <span id="scoreNumber" class="score-num">47</span>
+                  <span class="score-max">/ 100</span>
+                </div>
+              </div>
+              <div class="score-copy">
+                <div class="status-row">
+                  <span id="readinessBadge" class="status-badge BLOCKED">BLOCKED</span>
+                  <span id="graphSummaryTag" class="subtle-tag">2-Hop Teamwork Graph</span>
+                </div>
+                <p id="scoreVerdictText" class="verdict-text"></p>
+                <div id="breakdownChips" class="breakdown-row"></div>
+              </div>
+            </div>
+
+            <div class="score-cta">
+              <button id="btnCreateSubtasks" class="btn btn-primary">Create Jira Mitigation Subtasks</button>
+              <button id="btnLogAttestation" class="btn btn-secondary">Log Release Attestation</button>
+            </div>
+          </div>
+
+          <div class="card graph-box">
+            <div class="card-header compact">
+              <div>
+                <span class="eyebrow">ATLASSIAN TEAMWORK GRAPH · MULTI-HOP BLAST-RADIUS LINEAGE</span>
+                <h3>Connected Issue ↔ Component ↔ Confluence ADR ↔ Hidden JSM Incident Graph</h3>
+              </div>
+              <div class="legend-row">
+                <span class="leg"><i class="dot crit"></i>ADR Drift</span>
+                <span class="leg"><i class="dot warn"></i>Hidden 2-Hop Incident</span>
+                <span class="leg"><i class="dot ok"></i>Verified / Safe</span>
+              </div>
+            </div>
+
+            <div class="graph-canvas-wrap">
+              <svg id="blastGraphSvg" viewBox="0 0 920 330" preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+
+            <div id="nodeInspectorBar" class="inspector-bar"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- TAB 2: Assignable Rovo Release Auditor -->
+    <main id="tab-rovo" class="tab-view">
+      <div class="two-col-layout">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <span class="eyebrow">FORGE MODULE · rovo:agent (shipgate-auditor-agent)</span>
+              <h2>Assignable Rovo Release Auditor</h2>
+            </div>
+            <span class="pill pill-mcp">4 Connected Forge Actions</span>
+          </div>
+          <p class="panel-desc">
+            Assign <strong>@ShipGate Release Auditor</strong> directly on a Jira issue or invoke it in Rovo Chat. Click any conversation starter from <code>manifest.yml</code> to execute live multi-hop graph auditing and automated Jira subtask creation:
+          </p>
+          <div class="starter-chips" id="rovoStarterList"></div>
+
+          <div class="rovo-specs-card">
+            <h3>Registered Forge Action Tools</h3>
+            <ul class="spec-list">
+              <li><code>fetch-context-graph</code> <span class="verb GET">GET</span> — Traverses 2-hop Teamwork Graph across Jira, Compass, Confluence ADRs, and JSM postmortems.</li>
+              <li><code>verify-adr-compliance</code> <span class="verb GET">GET</span> — Validates config key-values &amp; PostgreSQL DDL diffs against approved ADR constraints.</li>
+              <li><code>create-mitigation-subtasks</code> <span class="verb CREATE">CREATE</span> — Spawns linked Jira mitigation subtasks for open guardrails.</li>
+              <li><code>log-release-attestation</code> <span class="verb UPDATE">UPDATE</span> — Writes signed readiness attestation back into Forge Hosted Storage &amp; graph lineage.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="card chat-column">
+          <div class="chat-feed" id="rovoChatFeed"></div>
+          <form id="rovoChatForm" class="chat-input-row">
+            <input id="rovoChatInput" type="text" placeholder="Ask @ShipGate Release Auditor (e.g. 'Audit PAY-482 and create mitigation subtasks')..." />
+            <button type="submit" class="btn btn-primary">Invoke Rovo Agent</button>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <!-- TAB 3: Atlassian MCP Live Console & SKILL.md -->
+    <main id="tab-mcp" class="tab-view">
+      <div class="two-col-layout">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <span class="eyebrow">FORGE MODULE · rovo:mcp (shipgate-mcp-server)</span>
+              <h2>Atlassian MCP Tool Call Inspector</h2>
+            </div>
+            <span class="pill pill-forge">JSON-RPC 2.0</span>
+          </div>
+          <p class="panel-desc">
+            External coding agents (<strong>Claude Code, Cursor, Google Antigravity, OpenAI Codex</strong>) invoke ShipGate's Forge actions via Atlassian MCP before opening a PR or running a database migration. Trigger any live MCP tool call below:
+          </p>
+
+          <div class="mcp-buttons">
+            <button class="btn btn-outline mcp-trigger" data-tool="tools/list">1. MCP tools/list</button>
+            <button class="btn btn-primary mcp-trigger" data-tool="fetch-context-graph">2. Call fetch-context-graph</button>
+            <button class="btn btn-primary mcp-trigger" data-tool="verify-adr-compliance">3. Call verify-adr-compliance (Compliant Diff)</button>
+            <button class="btn btn-primary mcp-trigger" data-tool="create-mitigation-subtasks">4. Call create-mitigation-subtasks</button>
+            <button class="btn btn-secondary mcp-trigger" data-tool="log-release-attestation">5. Call log-release-attestation</button>
+          </div>
+
+          <div class="rpc-panes">
+            <div>
+              <div class="code-label">MCP JSON-RPC Request</div>
+              <pre id="mcpRequestPre" class="code-box"></pre>
+            </div>
+            <div>
+              <div class="code-label">MCP JSON-RPC Response (Live Engine Output)</div>
+              <pre id="mcpResponsePre" class="code-box"></pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <span class="eyebrow">OPEN-SOURCE REPOSITORY ARTIFACT</span>
+              <h2>Portable Coding Agent SKILL.md &amp; MCP Config</h2>
+            </div>
+            <span class="pill pill-mcp">MIT Licensed</span>
+          </div>
+          <div class="code-label">mcp-configs/mcp_client_config.json (Claude / Cursor / Antigravity)</div>
+          <pre class="code-box compact-pre">{
+  "mcpServers": {
+    "shipgate-atlassian-context": {
+      "url": "https://mcp.atlassian.com/v1/sse",
+      "headers": { "X-Atlassian-Forge-App": "shipgate-context-forge" }
+    }
+  }
+}</pre>
+          <div class="code-label" style="margin-top:10px;">SKILL.md — Automated Pre-PR Organizational Context Gate</div>
+          <pre class="code-box tall-pre"># ShipGate Context — Open-Source Agent Skill (SKILL.md)
+1. Extract Jira issue key from Git branch (e.g. feat/PAY-482 -> PAY-482).
+2. Call `fetch-context-graph` (depth=2) via Atlassian MCP to load governed
+   Confluence ADRs, Compass service owners, and 2-hop JSM postmortems.
+3. Pass modified config keys or SQL DDL to `verify-adr-compliance`:
+   - If status == "BLOCKED" or CRITICAL adrViolations > 0, apply the ADR
+     remediationHint locally before opening a Pull Request.
+4. Call `create-mitigation-subtasks` for mandatory load-test / SRE checks.
+5. Once confidenceScore >= 85 (SHIP_READY), call `log-release-attestation`.</pre>
+        </section>
+      </div>
+    </main>
+
+    <!-- TAB 4: Forge Architecture & Judge 1-Click Setup -->
+    <main id="tab-arch" class="tab-view">
+      <div class="two-col-layout">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <span class="eyebrow">ZERO EXTERNAL EGRESS · 100% RUNS ON ATLASSIAN</span>
+              <h2>Forge Serverless Architecture &amp; Bonus Prize Alignment</h2>
+            </div>
+            <span class="pill pill-forge">@forge/manifest Validated</span>
+          </div>
+
+          <div class="bonus-grid">
+            <div class="bonus-card">
+              <strong>Apps for Software Teams (Main)</strong>
+              <p>Prevents production incidents caused by organizational context drift between Confluence ADRs, JSM postmortems, and Jira releases.</p>
+            </div>
+            <div class="bonus-card">
+              <strong>Best Agents (rovo:agent + action)</strong>
+              <p>Assignable <code>shipgate-auditor-agent</code> + 4 reusable <code>action</code> modules with strict typed inputs and verbs.</p>
+            </div>
+            <div class="bonus-card">
+              <strong>Best App with Atlassian MCP</strong>
+              <p><code>rovo:mcp</code> server (<code>shipgate-mcp-server</code>) + plug-and-play open-source <code>SKILL.md</code> for IDE/CLI agents.</p>
+            </div>
+            <div class="bonus-card">
+              <strong>Teamwork Graph + Runs on Atlassian</strong>
+              <p>Queries <code>requestTeamworkGraph</code> + persists attestations in <code>@forge/kvs</code> with zero external remotes.</p>
+            </div>
+          </div>
+
+          <div class="code-label" style="margin-top:12px;">Judge's 30-Second Evaluation &amp; 1-Command Forge Deployment</div>
+          <pre class="code-box compact-pre"># 1. Verify official @forge/manifest schema &amp; unit tests locally (8/8 PASS)
+cd forge-app &amp;&amp; npm install &amp;&amp; npm run check
+
+# 2. Deploy &amp; install onto any Atlassian Cloud developer site
+forge register &amp;&amp; forge deploy -e production &amp;&amp; forge install --upgrade
+
+# 3. In Jira App Settings -&gt; "ShipGate Demo Workspace Seeder", click:
+#    [Seed Realistic Demo Workspace (1-Click)] to populate all sample entities!</pre>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <span class="eyebrow">forge-app/manifest.yml · FULL VALIDATION PASSED (0 ERRORS)</span>
+              <h2>Verified Atlassian Forge Manifest</h2>
+            </div>
+            <span class="pill pill-mcp">nodejs22.x · arm64</span>
+          </div>
+          <pre class="code-box manifest-pre">modules:
+  jira:issuePanel:
+    - key: shipgate-readiness-panel
+      resource: ui-panel
+      resolver: { function: panel-resolver }
+      title: ShipGate Context &amp; Readiness
+  jira:adminPage:
+    - key: shipgate-demo-seeder
+      resource: ui-admin
+      resolver: { function: admin-resolver }
+      title: ShipGate Demo Workspace Seeder
+  rovo:agent:
+    - key: shipgate-auditor-agent
+      name: ShipGate Release Auditor
+      actions: [fetch-context-graph, verify-adr-compliance, create-mitigation-subtasks, log-release-attestation]
+  action:
+    - key: fetch-context-graph        # actionVerb: GET
+    - key: verify-adr-compliance      # actionVerb: GET
+    - key: create-mitigation-subtasks # actionVerb: CREATE
+    - key: log-release-attestation    # actionVerb: UPDATE
+  rovo:mcp:
+    - key: shipgate-mcp-server
+      name: ShipGate Atlassian Context MCP
+      tools: [fetch-context-graph, verify-adr-compliance, create-mitigation-subtasks, log-release-attestation]
+permissions:
+  scopes: [storage:app, read:jira-work, write:jira-work, read:page:confluence,
+           read:graph:issue:jira, read:graph:page:confluence, read:graph:component:compass]</pre>
+        </section>
+      </div>
+    </main>
+  </div>
+
+</body>
+</html>
